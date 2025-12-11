@@ -476,8 +476,8 @@ Bu proje **eğitim amaçlı** geliştirilmiştir.
 
 ## 👤 Yazar
 
-**YouTube Video Success Predictor** - Geliştirilmiş Makine Öğrenmesi Projesi
-
+-MEHMET DEMİR
+-NEFİSE TURGUT
 ---
 
 ## 🙏 Teşekkürler
