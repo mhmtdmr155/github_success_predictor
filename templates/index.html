@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Video Success Predictor | AI-Powered Analytics</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="background-animation"></div>
+    
+    <div class="container">
+        <!-- Header -->
+        <header class="main-header">
+            <div class="header-content">
+                <div class="logo-section">
+                    <div class="logo-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="2" y="4" width="20" height="16" rx="2"></rect>
+                            <path d="M10 9l5 3-5 3V9z"></path>
+                        </svg>
+                    </div>
+                    <div class="logo-text">
+                        <h1>YouTube Success Predictor</h1>
+                        <p class="tagline">AI-Powered Video Performance Analytics</p>
+                    </div>
+                </div>
+                <div class="header-badge">
+                    <span class="badge-dot"></span>
+                    <span>Model Active</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Stats Bar -->
+        <div class="stats-bar" id="statsBar" style="display: none;">
+            <div class="stat-item">
+                <div class="stat-icon">📊</div>
+                <div class="stat-content">
+                    <div class="stat-value" id="predictionStat">-</div>
+                    <div class="stat-label">Predicted Views</div>
+                </div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-icon">🎯</div>
+                <div class="stat-content">
+                    <div class="stat-value" id="confidenceStat">-</div>
+                    <div class="stat-label">Confidence</div>
+                </div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-icon">⚡</div>
+                <div class="stat-content">
+                    <div class="stat-value" id="featuresStat">45+</div>
+                    <div class="stat-label">Features Analyzed</div>
+                </div>
+            </div>
+        </div>
+
+        <main class="main-content">
+            <!-- Form Section -->
+            <div class="form-container glass-card">
+                <div class="form-header">
+                    <h2>Video Analytics Input</h2>
+                    <p>Enter your video details to get AI-powered predictions</p>
+                </div>
+
+                <form id="predictionForm" class="prediction-form">
+                    <!-- Video Information -->
+                    <div class="form-section">
+                        <div class="section-header">
+                            <span class="section-icon">🎬</span>
+                            <h3>Video Information</h3>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="title" class="form-label">
+                                Video Title <span class="required">*</span>
+                                <span class="label-hint">Optimal: 50-60 characters</span>
+                            </label>
+                            <div class="input-wrapper">
+                                <input type="text" id="title" name="title" required 
+                                       placeholder="e.g., Python Tutorial: Build a Web App in 10 Minutes"
+                                       class="form-input">
+                                <div class="input-feedback">
+                                    <span class="char-count">
+                                        <span id="titleLength">0</span> / 60
+                                    </span>
+                                    <div class="progress-bar">
+                                        <div class="progress-fill" id="titleProgress"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="description" class="form-label">Video Description</label>
+                            <textarea id="description" name="description" rows="3" 
+                                      placeholder="Brief description of your video content..."
+                                      class="form-textarea"></textarea>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="duration_minutes" class="form-label">
+                                    Duration (minutes) <span class="required">*</span>
+                                </label>
+                                <input type="number" id="duration_minutes" name="duration_minutes" 
+                                       min="1" max="480" value="10" required
+                                       class="form-input">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="tag_count" class="form-label">Tag Count</label>
+                                <input type="number" id="tag_count" name="tag_count" 
+                                       min="0" max="50" value="5"
+                                       class="form-input">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Publishing Schedule -->
+                    <div class="form-section">
+                        <div class="section-header">
+                            <span class="section-icon">📅</span>
+                            <h3>Publishing Schedule</h3>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="publish_date" class="form-label">Publish Date</label>
+                                <input type="datetime-local" id="publish_date" name="publish_date"
+                                       class="form-input">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="publish_hour" class="form-label">Publish Time</label>
+                                <select id="publish_hour" name="publish_hour" class="form-select">
+                                    <option value="6">06:00 - Morning</option>
+                                    <option value="9">09:00 - Morning</option>
+                                    <option value="12">12:00 - Noon</option>
+                                    <option value="15">15:00 - Afternoon</option>
+                                    <option value="18" selected>18:00 - Prime Time ⭐</option>
+                                    <option value="19">19:00 - Prime Time ⭐</option>
+                                    <option value="20">20:00 - Prime Time ⭐</option>
+                                    <option value="21">21:00 - Prime Time ⭐</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Channel Statistics -->
+                    <div class="form-section">
+                        <div class="section-header">
+                            <span class="section-icon">📊</span>
+                            <h3>Channel Statistics</h3>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="channel_subscribers" class="form-label">
+                                    Subscribers <span class="required">*</span>
+                                </label>
+                                <input type="number" id="channel_subscribers" name="channel_subscribers" 
+                                       min="0" value="100000" required
+                                       class="form-input">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="channel_video_count" class="form-label">Total Videos</label>
+                                <input type="number" id="channel_video_count" name="channel_video_count" 
+                                       min="0" value="100"
+                                       class="form-input">
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-predict" id="predictBtn">
+                        <span class="btn-content">
+                            <span class="btn-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></svg>
+                            </span>
+                            <span class="btn-text">Generate AI Prediction</span>
+                        </span>
+                        <span class="btn-loading" style="display: none;">
+                            <span class="spinner"></span>
+                            <span>Analyzing...</span>
+                        </span>
+                    </button>
+                </form>
+            </div>
+
+            <!-- Results Section -->
+            <div id="results" class="results-container" style="display: none;">
+                <div class="results-card glass-card">
+                    <div class="results-header">
+                        <h2>Prediction Results</h2>
+                        <div class="confidence-badge" id="confidenceBadge">
+                            <span class="badge-icon">✓</span>
+                            <span id="confidenceText">85% Confidence</span>
+                        </div>
+                    </div>
+
+                    <!-- Main Prediction -->
+                    <div class="prediction-hero">
+                        <div class="prediction-label">First 7 Days Views</div>
+                        <div class="prediction-value-wrapper">
+                            <span class="prediction-value" id="predictionValue">0</span>
+                            <span class="prediction-unit">views</span>
+                        </div>
+                        <div class="prediction-range" id="predictionRange">-</div>
+                        
+                        <!-- Prediction Chart -->
+                        <div class="prediction-chart">
+                            <div class="chart-bar">
+                                <div class="chart-fill" id="chartFill" style="width: 0%"></div>
+                            </div>
+                            <div class="chart-labels">
+                                <span>Min</span>
+                                <span>Expected</span>
+                                <span>Max</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Key Metrics -->
+                    <div class="metrics-grid">
+                        <div class="metric-card">
+                            <div class="metric-icon">📈</div>
+                            <div class="metric-value" id="minViews">-</div>
+                            <div class="metric-label">Minimum</div>
+                        </div>
+                        <div class="metric-card highlight">
+                            <div class="metric-icon">🎯</div>
+                            <div class="metric-value" id="expectedViews">-</div>
+                            <div class="metric-label">Expected</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-icon">🚀</div>
+                            <div class="metric-value" id="maxViews">-</div>
+                            <div class="metric-label">Maximum</div>
+                        </div>
+                    </div>
+
+                    <!-- Recommendations -->
+                    <div class="recommendations-section">
+                        <div class="section-title">
+                            <span class="title-icon">💡</span>
+                            <h3>AI Recommendations</h3>
+                        </div>
+                        <div id="recommendationsList" class="recommendations-list"></div>
+                    </div>
+
+                    <!-- Model Info -->
+                    <div class="model-info">
+                        <div class="info-item">
+                            <span class="info-icon">🤖</span>
+                            <span id="modelName">Powered by Optimized ML Model</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-icon">📊</span>
+                            <span id="featureCount">45+ Features Analyzed</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-icon">✅</span>
+                            <span id="modelAccuracy">High Accuracy Predictions</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-icon">🔬</span>
+                            <span>Production-Ready AI System</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Error Section -->
+            <div id="error" class="error-container" style="display: none;">
+                <div class="error-card glass-card">
+                    <div class="error-icon">⚠️</div>
+                    <h3>Error</h3>
+                    <p id="errorMessage"></p>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="main-footer">
+            <p>YouTube Success Predictor | AI-Powered Analytics Platform</p>
+            <p class="footer-subtitle">Machine Learning • Data Science • Predictive Analytics</p>
+        </footer>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
