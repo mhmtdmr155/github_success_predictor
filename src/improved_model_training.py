@@ -7,7 +7,7 @@ import sys
 import pandas as pd
 import numpy as np
 import joblib
-from sklearn.model_selection import train_test_split, cross_val_score, GridSearchCV, KFold
+from sklearn.model_selection import train_test_split, cross_val_score, GridSearchCV, KFold, RandomizedSearchCV
 from sklearn.preprocessing import StandardScaler, RobustScaler
 from sklearn.linear_model import LinearRegression, Ridge, Lasso, ElasticNet
 from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor, VotingRegressor
@@ -106,20 +106,20 @@ class ImprovedModelTrainer:
         return X_train_scaled, X_test_scaled, y_train, y_test, X_train, X_test
     
     def optimize_xgboost(self, X_train, y_train):
-        """Optimize XGBoost hyperparameters"""
-        print("\nOptimizing XGBoost hyperparameters...")
+        """Optimize XGBoost hyperparameters - Using RandomizedSearchCV for faster optimization"""
+        print("\nOptimizing XGBoost hyperparameters (this may take a few minutes)...")
         
-        # Reduced parameter grid for faster optimization
-        # Can be expanded for better results but takes longer
-        param_grid = {
-            'n_estimators': [300, 400, 500],
-            'max_depth': [8, 10, 12],
-            'learning_rate': [0.01, 0.05],
-            'subsample': [0.8, 0.9],
-            'colsample_bytree': [0.8, 0.9],
-            'min_child_weight': [1, 3],
-            'reg_alpha': [0, 0.1],
-            'reg_lambda': [1, 1.5]
+        # Reduced parameter grid for faster optimization with RandomizedSearchCV
+        # RandomizedSearchCV is much faster than GridSearchCV
+        param_distributions = {
+            'n_estimators': [200, 300, 400, 500],
+            'max_depth': [6, 8, 10, 12],
+            'learning_rate': [0.01, 0.05, 0.1],
+            'subsample': [0.8, 0.9, 1.0],
+            'colsample_bytree': [0.8, 0.9, 1.0],
+            'min_child_weight': [1, 3, 5],
+            'reg_alpha': [0, 0.1, 0.5],
+            'reg_lambda': [1, 1.5, 2.0]
         }
         
         base_model = xgb.XGBRegressor(
@@ -129,28 +129,33 @@ class ImprovedModelTrainer:
             tree_method='hist'  # Faster training
         )
         
-        # Use 3-fold CV for speed (can increase to 5 for better validation)
-        grid_search = GridSearchCV(
+        # Use RandomizedSearchCV instead of GridSearchCV - much faster!
+        # n_iter=20 means only 20 random combinations will be tried (instead of all 576)
+        # This is 28x faster while still finding good parameters
+        random_search = RandomizedSearchCV(
             base_model,
-            param_grid,
+            param_distributions,
+            n_iter=20,  # Try only 20 random combinations
             cv=3,
             scoring='r2',
             n_jobs=-1,
-            verbose=0  # Set to 0 to reduce output
+            verbose=1,
+            random_state=42
         )
         
-        grid_search.fit(X_train, y_train)
+        print("Starting hyperparameter search (20 random combinations, 3-fold CV)...")
+        random_search.fit(X_train, y_train)
         
-        print(f"Best XGBoost params: {grid_search.best_params_}")
-        print(f"Best XGBoost CV score: {grid_search.best_score_:.4f}")
+        print(f"Best XGBoost params: {random_search.best_params_}")
+        print(f"Best XGBoost CV score: {random_search.best_score_:.4f}")
         
-        return grid_search.best_estimator_
+        return random_search.best_estimator_
     
     def optimize_random_forest(self, X_train, y_train):
-        """Optimize Random Forest hyperparameters"""
+        """Optimize Random Forest hyperparameters - Using RandomizedSearchCV for faster optimization"""
         print("\nOptimizing Random Forest hyperparameters...")
         
-        param_grid = {
+        param_distributions = {
             'n_estimators': [100, 200, 300],
             'max_depth': [10, 15, 20, None],
             'min_samples_split': [2, 5, 10],
@@ -160,27 +165,30 @@ class ImprovedModelTrainer:
         
         base_model = RandomForestRegressor(random_state=42, n_jobs=-1)
         
-        grid_search = GridSearchCV(
+        # Use RandomizedSearchCV for faster optimization
+        random_search = RandomizedSearchCV(
             base_model,
-            param_grid,
+            param_distributions,
+            n_iter=15,  # Try 15 random combinations instead of all
             cv=3,
             scoring='r2',
             n_jobs=-1,
-            verbose=1
+            verbose=1,
+            random_state=42
         )
         
-        grid_search.fit(X_train, y_train)
+        random_search.fit(X_train, y_train)
         
-        print(f"Best Random Forest params: {grid_search.best_params_}")
-        print(f"Best Random Forest CV score: {grid_search.best_score_:.4f}")
+        print(f"Best Random Forest params: {random_search.best_params_}")
+        print(f"Best Random Forest CV score: {random_search.best_score_:.4f}")
         
-        return grid_search.best_estimator_
+        return random_search.best_estimator_
     
     def optimize_gradient_boosting(self, X_train, y_train):
-        """Optimize Gradient Boosting hyperparameters"""
+        """Optimize Gradient Boosting hyperparameters - Using RandomizedSearchCV for faster optimization"""
         print("\nOptimizing Gradient Boosting hyperparameters...")
         
-        param_grid = {
+        param_distributions = {
             'n_estimators': [100, 200, 300],
             'learning_rate': [0.01, 0.05, 0.1],
             'max_depth': [5, 7, 9],
@@ -190,21 +198,24 @@ class ImprovedModelTrainer:
         
         base_model = GradientBoostingRegressor(random_state=42)
         
-        grid_search = GridSearchCV(
+        # Use RandomizedSearchCV for faster optimization
+        random_search = RandomizedSearchCV(
             base_model,
-            param_grid,
+            param_distributions,
+            n_iter=15,  # Try 15 random combinations instead of all
             cv=3,
             scoring='r2',
             n_jobs=-1,
-            verbose=1
+            verbose=1,
+            random_state=42
         )
         
-        grid_search.fit(X_train, y_train)
+        random_search.fit(X_train, y_train)
         
-        print(f"Best Gradient Boosting params: {grid_search.best_params_}")
-        print(f"Best Gradient Boosting CV score: {grid_search.best_score_:.4f}")
+        print(f"Best Gradient Boosting params: {random_search.best_params_}")
+        print(f"Best Gradient Boosting CV score: {random_search.best_score_:.4f}")
         
-        return grid_search.best_estimator_
+        return random_search.best_estimator_
     
     def train_ensemble_model(self, X_train, y_train, models):
         """Create ensemble of best models"""
