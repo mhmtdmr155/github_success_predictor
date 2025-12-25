@@ -95,20 +95,34 @@ class ImprovedModelTrainer:
             return X_clean, y_clean
         return X, y
     
-    def train_test_split_data(self, X, y, test_size=0.2, random_state=42):
-        """Split data with stratification if possible"""
-        X_train, X_test, y_train, y_test = train_test_split(
+    def train_test_split_data(self, X, y, test_size=0.2, val_size=0.15, random_state=42):
+        """Split data into train, validation, and test sets"""
+        # First split: separate test set (20%)
+        X_temp, X_test, y_temp, y_test = train_test_split(
             X, y, test_size=test_size, random_state=random_state
+        )
+        
+        # Second split: separate train and validation from remaining data
+        # val_size is relative to the remaining data after test split
+        val_size_adjusted = val_size / (1 - test_size)
+        X_train, X_val, y_train, y_val = train_test_split(
+            X_temp, y_temp, test_size=val_size_adjusted, random_state=random_state
         )
         
         # Remove outliers from training set only
         X_train, y_train = self.remove_outliers(X_train, y_train)
         
-        # Scale features
+        # Scale features (fit on train, transform on val and test)
         X_train_scaled = self.scaler.fit_transform(X_train)
+        X_val_scaled = self.scaler.transform(X_val)
         X_test_scaled = self.scaler.transform(X_test)
         
-        return X_train_scaled, X_test_scaled, y_train, y_test, X_train, X_test
+        print(f"\nData Split:")
+        print(f"  Train: {X_train.shape[0]} samples ({100*X_train.shape[0]/len(X):.1f}%)")
+        print(f"  Validation: {X_val.shape[0]} samples ({100*X_val.shape[0]/len(X):.1f}%)")
+        print(f"  Test: {X_test.shape[0]} samples ({100*X_test.shape[0]/len(X):.1f}%)")
+        
+        return X_train_scaled, X_val_scaled, X_test_scaled, y_train, y_val, y_test, X_train, X_val, X_test
     
     def optimize_xgboost(self, X_train, y_train):
         """Optimize XGBoost hyperparameters - Using RandomizedSearchCV for faster optimization"""
@@ -305,10 +319,11 @@ class ImprovedModelTrainer:
         
         return lower_bound, upper_bound, residual_std
     
-    def train_all_models(self, X_train, X_test, y_train, y_test):
-        """Train and evaluate all models with optimization"""
+    def train_all_models(self, X_train, X_val, X_test, y_train, y_val, y_test):
+        """Train and evaluate all models with optimization using train-validation-test split"""
         print("\n" + "=" * 60)
         print("IMPROVED MODEL TRAINING WITH OPTIMIZATION")
+        print("Using Train-Validation-Test split for model evaluation")
         print("=" * 60)
         
         results = {}
@@ -317,72 +332,128 @@ class ImprovedModelTrainer:
         # Train optimized models
         try:
             xgb_model = self.optimize_xgboost(X_train, y_train)
-            xgb_metrics, xgb_pred = self.evaluate_model_comprehensive(
-                xgb_model, X_train, X_test, y_train, y_test, "XGBoost (Optimized)"
+            xgb_metrics_val, xgb_pred_val = self.evaluate_model_comprehensive(
+                xgb_model, X_train, X_val, y_train, y_val, "XGBoost (Optimized - Validation)"
             )
-            results['XGBoost'] = {'model': xgb_model, 'metrics': xgb_metrics, 'predictions': xgb_pred}
+            xgb_metrics_test, xgb_pred_test = self.evaluate_model_comprehensive(
+                xgb_model, X_train, X_test, y_train, y_test, "XGBoost (Optimized - Test)"
+            )
+            results['XGBoost'] = {
+                'model': xgb_model, 
+                'metrics_val': xgb_metrics_val,
+                'metrics_test': xgb_metrics_test,
+                'predictions': xgb_pred_test
+            }
             trained_models['xgb'] = xgb_model
         except Exception as e:
             print(f"Error optimizing XGBoost: {e}")
             # Fallback to default
             xgb_model = xgb.XGBRegressor(n_estimators=200, learning_rate=0.05, max_depth=8, random_state=42, n_jobs=-1)
             xgb_model.fit(X_train, y_train)
-            xgb_metrics, xgb_pred = self.evaluate_model_comprehensive(
-                xgb_model, X_train, X_test, y_train, y_test, "XGBoost (Default)"
+            xgb_metrics_val, xgb_pred_val = self.evaluate_model_comprehensive(
+                xgb_model, X_train, X_val, y_train, y_val, "XGBoost (Default - Validation)"
             )
-            results['XGBoost'] = {'model': xgb_model, 'metrics': xgb_metrics, 'predictions': xgb_pred}
+            xgb_metrics_test, xgb_pred_test = self.evaluate_model_comprehensive(
+                xgb_model, X_train, X_test, y_train, y_test, "XGBoost (Default - Test)"
+            )
+            results['XGBoost'] = {
+                'model': xgb_model, 
+                'metrics_val': xgb_metrics_val,
+                'metrics_test': xgb_metrics_test,
+                'predictions': xgb_pred_test
+            }
             trained_models['xgb'] = xgb_model
         
         try:
             rf_model = self.optimize_random_forest(X_train, y_train)
-            rf_metrics, rf_pred = self.evaluate_model_comprehensive(
-                rf_model, X_train, X_test, y_train, y_test, "Random Forest (Optimized)"
+            rf_metrics_val, rf_pred_val = self.evaluate_model_comprehensive(
+                rf_model, X_train, X_val, y_train, y_val, "Random Forest (Optimized - Validation)"
             )
-            results['Random Forest'] = {'model': rf_model, 'metrics': rf_metrics, 'predictions': rf_pred}
+            rf_metrics_test, rf_pred_test = self.evaluate_model_comprehensive(
+                rf_model, X_train, X_test, y_train, y_test, "Random Forest (Optimized - Test)"
+            )
+            results['Random Forest'] = {
+                'model': rf_model, 
+                'metrics_val': rf_metrics_val,
+                'metrics_test': rf_metrics_test,
+                'predictions': rf_pred_test
+            }
             trained_models['rf'] = rf_model
         except Exception as e:
             print(f"Error optimizing Random Forest: {e}")
             # Fallback to default
             rf_model = RandomForestRegressor(n_estimators=200, max_depth=15, random_state=42, n_jobs=-1)
             rf_model.fit(X_train, y_train)
-            rf_metrics, rf_pred = self.evaluate_model_comprehensive(
-                rf_model, X_train, X_test, y_train, y_test, "Random Forest (Default)"
+            rf_metrics_val, rf_pred_val = self.evaluate_model_comprehensive(
+                rf_model, X_train, X_val, y_train, y_val, "Random Forest (Default - Validation)"
             )
-            results['Random Forest'] = {'model': rf_model, 'metrics': rf_metrics, 'predictions': rf_pred}
+            rf_metrics_test, rf_pred_test = self.evaluate_model_comprehensive(
+                rf_model, X_train, X_test, y_train, y_test, "Random Forest (Default - Test)"
+            )
+            results['Random Forest'] = {
+                'model': rf_model, 
+                'metrics_val': rf_metrics_val,
+                'metrics_test': rf_metrics_test,
+                'predictions': rf_pred_test
+            }
             trained_models['rf'] = rf_model
         
         try:
             gb_model = self.optimize_gradient_boosting(X_train, y_train)
-            gb_metrics, gb_pred = self.evaluate_model_comprehensive(
-                gb_model, X_train, X_test, y_train, y_test, "Gradient Boosting (Optimized)"
+            gb_metrics_val, gb_pred_val = self.evaluate_model_comprehensive(
+                gb_model, X_train, X_val, y_train, y_val, "Gradient Boosting (Optimized - Validation)"
             )
-            results['Gradient Boosting'] = {'model': gb_model, 'metrics': gb_metrics, 'predictions': gb_pred}
+            gb_metrics_test, gb_pred_test = self.evaluate_model_comprehensive(
+                gb_model, X_train, X_test, y_train, y_test, "Gradient Boosting (Optimized - Test)"
+            )
+            results['Gradient Boosting'] = {
+                'model': gb_model, 
+                'metrics_val': gb_metrics_val,
+                'metrics_test': gb_metrics_test,
+                'predictions': gb_pred_test
+            }
             trained_models['gb'] = gb_model
         except Exception as e:
             print(f"Error optimizing Gradient Boosting: {e}")
             # Fallback to default
             gb_model = GradientBoostingRegressor(n_estimators=200, learning_rate=0.05, max_depth=8, random_state=42)
             gb_model.fit(X_train, y_train)
-            gb_metrics, gb_pred = self.evaluate_model_comprehensive(
-                gb_model, X_train, X_test, y_train, y_test, "Gradient Boosting (Default)"
+            gb_metrics_val, gb_pred_val = self.evaluate_model_comprehensive(
+                gb_model, X_train, X_val, y_train, y_val, "Gradient Boosting (Default - Validation)"
             )
-            results['Gradient Boosting'] = {'model': gb_model, 'metrics': gb_metrics, 'predictions': gb_pred}
+            gb_metrics_test, gb_pred_test = self.evaluate_model_comprehensive(
+                gb_model, X_train, X_test, y_train, y_test, "Gradient Boosting (Default - Test)"
+            )
+            results['Gradient Boosting'] = {
+                'model': gb_model, 
+                'metrics_val': gb_metrics_val,
+                'metrics_test': gb_metrics_test,
+                'predictions': gb_pred_test
+            }
             trained_models['gb'] = gb_model
         
         # Train ensemble
         if len(trained_models) >= 2:
             try:
                 ensemble_model = self.train_ensemble_model(X_train, y_train, trained_models)
-                ensemble_metrics, ensemble_pred = self.evaluate_model_comprehensive(
-                    ensemble_model, X_train, X_test, y_train, y_test, "Ensemble"
+                ensemble_metrics_val, ensemble_pred_val = self.evaluate_model_comprehensive(
+                    ensemble_model, X_train, X_val, y_train, y_val, "Ensemble (Validation)"
                 )
-                results['Ensemble'] = {'model': ensemble_model, 'metrics': ensemble_metrics, 'predictions': ensemble_pred}
+                ensemble_metrics_test, ensemble_pred_test = self.evaluate_model_comprehensive(
+                    ensemble_model, X_train, X_test, y_train, y_test, "Ensemble (Test)"
+                )
+                results['Ensemble'] = {
+                    'model': ensemble_model, 
+                    'metrics_val': ensemble_metrics_val,
+                    'metrics_test': ensemble_metrics_test,
+                    'predictions': ensemble_pred_test
+                }
                 trained_models['ensemble'] = ensemble_model
             except Exception as e:
                 print(f"Error training ensemble: {e}")
         
-        # Find best model (based on test R²)
-        best_model_name = max(results.keys(), key=lambda k: results[k]['metrics']['test_r2'])
+        # Find best model (based on validation R²)
+        best_model_name = max(results.keys(), key=lambda k: results[k]['metrics_val']['test_r2'])
         self.best_model = results[best_model_name]['model']
         self.best_model_name = best_model_name
         
@@ -398,18 +469,28 @@ class ImprovedModelTrainer:
         }
         
         print("\n" + "=" * 60)
-        print("MODEL COMPARISON")
+        print("MODEL COMPARISON (Validation Set)")
         print("=" * 60)
-        print(f"{'Model':<30} {'Test R²':<12} {'CV R²':<15} {'Test MAE':<15} {'Test MAPE':<12}")
+        print(f"{'Model':<30} {'R² (Val)':<12} {'CV R²':<15} {'MAE (Val)':<15} {'MAPE (Val)':<12}")
         print("-" * 90)
         for name, result in results.items():
-            metrics = result['metrics']
+            metrics = result['metrics_val']
+            print(f"{name:<30} {metrics['test_r2']:<12.4f} {metrics['cv_r2_mean']:<15.4f} {metrics['test_mae']:<15,.0f} {metrics['test_mape']:<12.2f}%")
+        
+        print("\n" + "=" * 60)
+        print("FINAL MODEL EVALUATION (Test Set)")
+        print("=" * 60)
+        print(f"{'Model':<30} {'R² (Test)':<12} {'CV R²':<15} {'MAE (Test)':<15} {'MAPE (Test)':<12}")
+        print("-" * 90)
+        for name, result in results.items():
+            metrics = result['metrics_test']
             print(f"{name:<30} {metrics['test_r2']:<12.4f} {metrics['cv_r2_mean']:<15.4f} {metrics['test_mae']:<15,.0f} {metrics['test_mape']:<12.2f}%")
         
         print(f"\n[Best Model] {best_model_name}")
-        print(f"  Test R²: {results[best_model_name]['metrics']['test_r2']:.4f}")
-        print(f"  CV R²:   {results[best_model_name]['metrics']['cv_r2_mean']:.4f} (±{results[best_model_name]['metrics']['cv_r2_std']:.4f})")
-        print(f"  Test MAE: {results[best_model_name]['metrics']['test_mae']:,.0f}")
+        print(f"  Validation R²: {results[best_model_name]['metrics_val']['test_r2']:.4f}")
+        print(f"  Test R²: {results[best_model_name]['metrics_test']['test_r2']:.4f}")
+        print(f"  CV R²:   {results[best_model_name]['metrics_test']['cv_r2_mean']:.4f} (±{results[best_model_name]['metrics_test']['cv_r2_std']:.4f})")
+        print(f"  Test MAE: {results[best_model_name]['metrics_test']['test_mae']:,.0f}")
         print(f"  Residual STD: {residual_std:,.0f}")
         
         return results
@@ -485,12 +566,11 @@ def main():
     X, y = trainer.prepare_data(df)
     print(f"\nFeatures: {X.shape[1]}, Samples: {X.shape[0]}")
     
-    # Split data
-    X_train, X_test, y_train, y_test, X_train_raw, X_test_raw = trainer.train_test_split_data(X, y)
-    print(f"Train set: {X_train.shape[0]}, Test set: {X_test.shape[0]}")
+    # Split data into train, validation, and test sets
+    X_train, X_val, X_test, y_train, y_val, y_test, X_train_raw, X_val_raw, X_test_raw = trainer.train_test_split_data(X, y)
     
     # Train models
-    results = trainer.train_all_models(X_train, X_test, y_train, y_test)
+    results = trainer.train_all_models(X_train, X_val, X_test, y_train, y_val, y_test)
     
     # Feature importance
     if trainer.best_model and hasattr(trainer.best_model, 'feature_importances_'):
