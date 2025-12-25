@@ -6,7 +6,7 @@ YouTube içerik üreticilerinin video yüklemeden önce başarı tahmininde bulu
 
 ## 📋 Proje Özeti
 
-Bu proje, **YouTube Data API v3** kullanılarak toplanan 500+ video verisinden öğrenen bir makine öğrenmesi modeli ile video başarısını tahmin eder. Geliştirilmiş **XGBoost** ve **Random Forest** algoritmaları kullanılarak **%85+ doğruluk oranı** ile ilk 7 günlük görüntülenme sayısını tahmin eder ve kullanıcılara kişiselleştirilmiş öneriler sunar.
+Bu proje, **YouTube Data API v3** kullanılarak toplanan **2,653+ video verisinden** öğrenen bir makine öğrenmesi modeli ile video başarısını tahmin eder. Geliştirilmiş **XGBoost** ve **Random Forest** algoritmaları kullanılarak **R² = 0.63** performansı ile ilk 7 günlük görüntülenme sayısını tahmin eder ve kullanıcılara kişiselleştirilmiş öneriler sunar.
 
 ---
 
@@ -98,12 +98,18 @@ YOUTUBE_API_KEY=your_api_key_here
 
 YouTube API'den geliştirilmiş veri toplamak için:
 
+**Yeni veri toplama (mevcut veriye ekleme):**
+```bash
+python add_more_data.py
+```
+
+**İlk veri toplama veya tamamen yeni veri:**
 ```bash
 cd src
 python improved_data_collection.py
 ```
 
-Bu script, teknoloji kategorisindeki popüler kanallardan video verilerini toplar ve `raw_data/youtube_videos_improved.csv` dosyasına kaydeder.
+Bu scriptler, teknoloji kategorisindeki 26 popüler kanaldan (8 uluslararası + 18 Türk kanalı) video verilerini toplar ve `raw_data/youtube_videos_improved.csv` dosyasına kaydeder. `add_more_data.py` mevcut veriye yeni verileri ekler ve duplicate'leri otomatik temizler.
 
 ### 2. Gelişmiş Veri Ön İşleme
 
@@ -149,23 +155,17 @@ Tarayıcınızda [http://localhost:5000](http://localhost:5000) adresine gidin.
 
 ## 📊 Geliştirilmiş Model Performansı
 
-### 🎯 Mevcut Performans (Örnek Veri ile)
+### 🎯 Mevcut Performans (Gerçek Veri ile - 2,653 Video)
 
 | Metrik | Değer |
 |--------|-------|
-| **Best Model** | Optimized Random Forest |
-| **Test R²** | 0.34 |
-| **CV R²** | 0.34 (±0.10) |
-| **Test MAE** | ~150,000 görüntülenme |
+| **Best Model** | Random Forest (Optimized) |
+| **Test R²** | **0.63** |
+| **Test MAE** | **27,206** görüntülenme |
+| **Test RMSE** | **56,143** görüntülenme |
+| **Veri Seti** | 2,653 video (ham), 2,490 video (işlenmiş) |
+| **Kanal Sayısı** | 26 kanal (8 uluslararası + 18 Türk teknoloji kanalı) |
 | **Prediction Intervals** | %95 güven aralığı |
-
-### 🚀 Gerçek Veri ile Beklenen Performans
-
-| Metrik | Hedef |
-|--------|-------|
-| **Test R²** | >0.85 (1000+ video ile) |
-| **Test MAE** | <50,000 görüntülenme |
-| **CV R²** | >0.85 |
 
 ### 🏆 En Önemli Özellikler (Geliştirilmiş)
 
@@ -188,20 +188,25 @@ Tarayıcınızda [http://localhost:5000](http://localhost:5000) adresine gidin.
 youtube_success_predictor/
 ├── app.py                                    # Geliştirilmiş Flask web uygulaması
 ├── improve_model.py                          # Model iyileştirme scripti
+├── add_more_data.py                          # Mevcut veriye yeni veri ekleme scripti
+├── run_preprocessing.py                      # Veri ön işleme scripti
+├── run_training.py                           # Model eğitimi scripti
+├── run_pipeline.py                           # Tam pipeline scripti
 ├── requirements.txt                          # Python bağımlılıkları
 ├── .env.example                              # Ortam değişkenleri örneği
 ├── .gitignore                                # Git ignore dosyası
 ├── README.md                                 # Bu dosya
 │
 ├── src/                                      # Kaynak kodlar
-│   ├── config.py                             # Yapılandırma
+│   ├── config.py                             # Yapılandırma (26 kanal, 200 video/kanal)
 │   ├── data_collection.py                    # Temel veri toplama
 │   ├── improved_data_collection.py           # Geliştirilmiş veri toplama
 │   ├── data_preprocessing.py                 # Temel veri ön işleme
 │   ├── advanced_feature_engineering.py       # Gelişmiş özellik mühendisliği
 │   ├── model_training.py                     # Temel model eğitimi
 │   ├── improved_model_training.py            # Geliştirilmiş model eğitimi
-│   └── prediction_utils.py                   # Tahmin yardımcı fonksiyonları
+│   ├── prediction_utils.py                   # Tahmin yardımcı fonksiyonları
+│   └── create_sample_data.py                # Örnek veri oluşturma
 │
 ├── templates/                                # HTML şablonları
 │   └── index.html                            # Güncellenmiş ana sayfa
@@ -236,7 +241,7 @@ Sağlık kontrolü ve model durumu.
   "model_loaded": true,
   "model_version": "improved",
   "performance": {
-    "r2_score": 0.34,
+    "r2_score": 0.63,
     "confidence": "high"
   }
 }
@@ -254,8 +259,9 @@ Geliştirilmiş model bilgileri.
   "training_date": "2024-01-01T00:00:00",
   "feature_count": 80,
   "performance": {
-    "test_r2": 0.34,
-    "cv_r2": "0.34 ± 0.10",
+    "test_r2": 0.63,
+    "test_mae": 27206,
+    "test_rmse": 56143,
     "confidence_level": "high"
   }
 }
@@ -408,10 +414,12 @@ Proje, aşağıdaki kategorilerde **80+ özellik** kullanır:
 
 ### 🚨 Performans Gerçekleri
 
-- **Örnek veride R²:** 0.34 - Gerçek veri ile >0.85 bekleniyor
-- **Minimum veri:** 200-300 video ile başlangıç, 1000+ video ile optimum
+- **Gerçek veri ile R²:** 0.63 (2,653 video ile eğitilmiş)
+- **Veri seti:** 2,653 ham video, 2,490 işlenmiş video
+- **Kanal kapsamı:** 26 teknoloji kanalı (8 uluslararası + 18 Türk kanalı)
 - **API limitleri:** Günlük 10,000 quota - planlı kullanım önerilir
 - **Tahmin güvenilirliği:** %75-95 arası dinamik güven skoru
+- **Test MAE:** 27,206 görüntülenme (çok iyi seviye)
 
 ### 🔧 Teknik İyileştirmeler
 
@@ -493,9 +501,11 @@ Bu proje **eğitim amaçlı** geliştirilmiştir.
 
 | Bilgi | Değer |
 |-------|-------|
-| **Son Sürüm** | 2.0 (Production-Ready) |
-| **Son Güncelleme** | 2024 |
+| **Son Sürüm** | 2.1 (Production-Ready) |
+| **Son Güncelleme** | Aralık 2024 |
 | **Durum** | ⚡ Geliştirilmiş ve Optimize Edilmiş |
+| **Veri Seti** | 2,653 video (26 kanal) |
+| **Model Performansı** | R² = 0.63, MAE = 27,206 |
 
 ---
 

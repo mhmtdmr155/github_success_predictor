@@ -126,8 +126,18 @@ class DataPreprocessor:
         """Extract time-based features"""
         df = df.copy()
         
-        # Convert publish date to datetime
-        df['published_at'] = pd.to_datetime(df['published_at'])
+        # Convert publish date to datetime - handle mixed formats and timezones
+        df['published_at'] = pd.to_datetime(df['published_at'], format='mixed', errors='coerce', utc=True)
+        
+        # Remove rows with invalid dates
+        invalid_dates = df['published_at'].isna()
+        if invalid_dates.any():
+            print(f"  Warning: {invalid_dates.sum()} rows with invalid dates removed")
+            df = df[~invalid_dates]
+        
+        # Convert to timezone-naive for easier processing
+        if df['published_at'].dt.tz is not None:
+            df['published_at'] = df['published_at'].dt.tz_localize(None)
         
         # Day of week (0=Monday, 6=Sunday)
         df['publish_day_of_week'] = df['published_at'].dt.dayofweek

@@ -37,7 +37,14 @@ class ImprovedDataCollector(YouTubeDataCollector):
         # Remove videos that are too old (might have different patterns)
         if 'published_at' in df.columns:
             df['published_at'] = pd.to_datetime(df['published_at'])
-            cutoff_date = datetime.now() - timedelta(days=1095)  # Last 3 years
+            # Ensure timezone-aware comparison
+            if df['published_at'].dt.tz is not None:
+                # If published_at is timezone-aware, make cutoff_date timezone-aware too
+                from datetime import timezone
+                cutoff_date = datetime.now(timezone.utc) - timedelta(days=1095)  # Last 3 years
+            else:
+                # If published_at is timezone-naive, keep cutoff_date naive
+                cutoff_date = datetime.now() - timedelta(days=1095)  # Last 3 years
             df = df[df['published_at'] >= cutoff_date]
         
         # Remove videos with extreme durations
