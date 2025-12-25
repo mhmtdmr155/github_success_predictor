@@ -58,6 +58,11 @@ class ModelTrainer:
         X = df[feature_cols].fillna(0)
         y = df[target_col]
         
+        # Remove rows with NaN in target
+        mask = ~y.isna()
+        X = X[mask]
+        y = y[mask]
+        
         self.feature_names = list(X.columns)
         
         return X, y

@@ -66,6 +66,11 @@ class ImprovedModelTrainer:
         X = X.replace([np.inf, -np.inf], np.nan)
         X = X.fillna(X.median())
         
+        # Remove rows with NaN in target
+        mask = ~y.isna()
+        X = X[mask]
+        y = y[mask]
+        
         # Remove features with zero variance
         X = X.loc[:, (X != X.iloc[0]).any()]
         
