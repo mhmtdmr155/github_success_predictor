@@ -237,3 +237,4 @@ Proje başarıyla çalıştırıldı! Tüm adımlar tamamlandı ve web uygulamas
 **Toplam Süre:** ~5 dakika
 **Durum:** ✅ Başarılı
 
+
