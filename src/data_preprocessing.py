@@ -9,6 +9,7 @@ import numpy as np
 import re
 from datetime import datetime
 import joblib
+from pandas.api.types import is_numeric_dtype
 
 # Add parent directory to path for imports
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -126,8 +127,15 @@ class DataPreprocessor:
         """Extract time-based features"""
         df = df.copy()
         
-        # Convert publish date to datetime
-        df['published_at'] = pd.to_datetime(df['published_at'])
+        # Convert publish date to datetime (handle mixed formats & timezones)
+        df['published_at'] = pd.to_datetime(
+            df['published_at'],
+            format='mixed',
+            errors='coerce',
+            utc=True
+        )
+        # Drop rows where conversion failed
+        df = df.dropna(subset=['published_at'])
         
         # Day of week (0=Monday, 6=Sunday)
         df['publish_day_of_week'] = df['published_at'].dt.dayofweek
@@ -205,11 +213,14 @@ class DataPreprocessor:
     def engineer_features(self, df):
         """Main feature engineering function"""
         print("\n=== Feature Engineering ===")
+
+        # Ensure stable, aligned indices before any concat/apply operations
+        df = df.reset_index(drop=True).copy()
         
         # Extract title features
         print("Extracting title features...")
         title_features = df['title'].apply(self.extract_title_features)
-        title_df = pd.DataFrame(list(title_features))
+        title_df = pd.DataFrame(list(title_features)).reset_index(drop=True)
         df = pd.concat([df, title_df], axis=1)
         
         # Time features
@@ -270,10 +281,11 @@ class DataPreprocessor:
             'duration_category', 'channel_size', target_col
         ]
         
-        # Keep only numeric features
-        feature_cols = [col for col in df.columns 
-                       if col not in exclude_cols 
-                       and df[col].dtype in [np.int64, np.float64, np.bool_]]
+        # Keep all numeric features (including uint8 from one-hot encoding)
+        feature_cols = [
+            col for col in df.columns
+            if col not in exclude_cols and is_numeric_dtype(df[col])
+        ]
         
         # Ensure target is included
         if target_col not in df.columns:

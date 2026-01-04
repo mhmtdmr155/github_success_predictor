@@ -136,38 +136,42 @@ def prepare_features(user_input):
     else:
         time_of_day = 'evening'
     
-    # Duration features
+    # Duration features (match preprocessing bins)
     duration_minutes = float(user_input.get('duration_minutes', 10))
     duration_seconds = duration_minutes * 60
-    
+
+    # Binary flags (match src/data_preprocessing.py)
+    is_short_video = 1 if duration_minutes < 5 else 0
+    is_medium_video = 1 if 5 <= duration_minutes <= 15 else 0
+    is_long_video = 1 if duration_minutes > 15 else 0
+
+    # Category (match src/data_preprocessing.py bins: 0-5-10-15-30-60-480)
     if duration_minutes < 5:
         duration_category = 'very_short'
-        is_short_video = 1
-        is_medium_video = 0
-        is_long_video = 0
+    elif duration_minutes < 10:
+        duration_category = 'short'
     elif duration_minutes <= 15:
         duration_category = 'medium'
-        is_short_video = 0
-        is_medium_video = 1
-        is_long_video = 0
-    else:
+    elif duration_minutes <= 30:
         duration_category = 'long'
-        is_short_video = 0
-        is_medium_video = 0
-        is_long_video = 1
+    elif duration_minutes <= 60:
+        duration_category = 'very_long'
+    else:
+        duration_category = 'extended'
     
     # Channel features
     channel_subscribers = float(user_input.get('channel_subscribers', 100000))
     channel_video_count = float(user_input.get('channel_video_count', 100))
     channel_view_count = float(user_input.get('channel_view_count', 1000000))
     
-    if channel_subscribers < 10000:
+    # Match preprocessing pd.cut bins (right-inclusive)
+    if channel_subscribers <= 10000:
         channel_size = 'small'
         channel_size_numeric = 1
-    elif channel_subscribers < 100000:
+    elif channel_subscribers <= 100000:
         channel_size = 'medium'
         channel_size_numeric = 2
-    elif channel_subscribers < 1000000:
+    elif channel_subscribers <= 1000000:
         channel_size = 'large'
         channel_size_numeric = 3
     else:
@@ -186,8 +190,15 @@ def prepare_features(user_input):
     description_has_url = 1 if 'http' in description.lower() else 0
     
     # Tag features
-    tags = user_input.get('tags', '')
-    tag_count = len(tags.split(',')) if tags else 0
+    # UI sends tag_count directly; fall back to parsing tags string if provided
+    if 'tag_count' in user_input and user_input.get('tag_count') is not None:
+        try:
+            tag_count = int(float(user_input.get('tag_count', 0)))
+        except Exception:
+            tag_count = 0
+    else:
+        tags = user_input.get('tags', '')
+        tag_count = len(tags.split(',')) if tags else 0
     
     # Title advanced features
     title_len = len(title)

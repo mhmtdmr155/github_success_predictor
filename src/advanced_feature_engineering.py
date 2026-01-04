@@ -6,6 +6,7 @@ import pandas as pd
 import numpy as np
 import re
 from datetime import datetime
+from pandas.api.types import is_numeric_dtype
 
 
 class AdvancedFeatureEngineer:
@@ -13,10 +14,22 @@ class AdvancedFeatureEngineer:
     
     def __init__(self):
         pass
+
+    def _sanitize_numeric(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Replace inf with NaN and fill NaN with 0 ONLY for numeric columns.
+        (Categorical columns like 'channel_size' cannot accept fillna(0).)
+        """
+        df = df.copy()
+        df = df.replace([np.inf, -np.inf], np.nan)
+        numeric_cols = [c for c in df.columns if is_numeric_dtype(df[c])]
+        if numeric_cols:
+            df[numeric_cols] = df[numeric_cols].fillna(0)
+        return df
     
     def create_interaction_features(self, df):
         """Create interaction features between important variables"""
-        df = df.copy()
+        df = self._sanitize_numeric(df)
         
         # Title length × Channel subscribers (bigger channels benefit more from good titles)
         df['title_length_x_subscribers'] = df['title_length'] * np.log1p(df['channel_subscribers'])
@@ -25,9 +38,11 @@ class AdvancedFeatureEngineer:
         df['duration_x_prime_time'] = df['duration_minutes'] * df['is_prime_time']
         
         # Title quality × Channel size (quality matters more for smaller channels)
-        title_quality = (df['title_is_tutorial'].astype(int) + 
-                        df['title_has_number'].astype(int) + 
-                        df['title_is_question'].astype(int))
+        title_quality = (
+            pd.to_numeric(df.get('title_is_tutorial', 0), errors='coerce').fillna(0).astype(int)
+            + pd.to_numeric(df.get('title_has_number', 0), errors='coerce').fillna(0).astype(int)
+            + pd.to_numeric(df.get('title_is_question', 0), errors='coerce').fillna(0).astype(int)
+        )
         df['title_quality_x_channel_size'] = title_quality * np.log1p(df['channel_subscribers'])
         
         # Weekend × Prime time (weekend prime time might be different)
@@ -46,7 +61,7 @@ class AdvancedFeatureEngineer:
     
     def create_polynomial_features(self, df):
         """Create polynomial features for non-linear relationships"""
-        df = df.copy()
+        df = self._sanitize_numeric(df)
         
         # Square of important features
         df['title_length_squared'] = df['title_length'] ** 2
@@ -61,7 +76,7 @@ class AdvancedFeatureEngineer:
     
     def create_ratio_features(self, df):
         """Create ratio features"""
-        df = df.copy()
+        df = self._sanitize_numeric(df)
         
         # Title length to word count ratio (word density)
         df['title_length_to_words'] = df['title_length'] / (df['title_word_count'] + 1)
@@ -79,7 +94,7 @@ class AdvancedFeatureEngineer:
     
     def create_time_features(self, df):
         """Create advanced time-based features"""
-        df = df.copy()
+        df = self._sanitize_numeric(df)
         
         # Convert publish date to datetime if not already
         if 'published_at' in df.columns:
@@ -113,7 +128,7 @@ class AdvancedFeatureEngineer:
     
     def create_title_advanced_features(self, df):
         """Create advanced title analysis features"""
-        df = df.copy()
+        df = self._sanitize_numeric(df)
         
         # Title sentiment indicators
         positive_words = ['best', 'top', 'amazing', 'awesome', 'great', 'ultimate', 'complete', 'perfect']
@@ -151,7 +166,7 @@ class AdvancedFeatureEngineer:
     
     def create_channel_advanced_features(self, df):
         """Create advanced channel features"""
-        df = df.copy()
+        df = self._sanitize_numeric(df)
         
         # Channel age (estimated from video count and upload frequency)
         # Assuming average upload frequency
@@ -174,7 +189,7 @@ class AdvancedFeatureEngineer:
     
     def create_content_quality_features(self, df):
         """Create content quality indicators"""
-        df = df.copy()
+        df = self._sanitize_numeric(df)
         
         # Content completeness score
         completeness = (
@@ -232,10 +247,8 @@ class AdvancedFeatureEngineer:
         print("Creating content quality features...")
         df = self.create_content_quality_features(df)
         
-        # Fill NaN values
-        df = df.fillna(0)
-        
-        # Replace inf values
+        # Final cleanup: sanitize numeric columns only (categoricals can't accept fillna(0))
+        df = self._sanitize_numeric(df)
         df = df.replace([np.inf, -np.inf], 0)
         
         print(f"Total features after advanced engineering: {df.shape[1]}")

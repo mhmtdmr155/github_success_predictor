@@ -16,6 +16,7 @@ import xgboost as xgb
 from datetime import datetime
 import warnings
 warnings.filterwarnings('ignore')
+from pandas.api.types import is_numeric_dtype
 
 # Add parent directory to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -51,13 +52,16 @@ class ImprovedModelTrainer:
             'duration_category', 'channel_size', target_col,
             # Exclude engagement metrics
             'view_count', 'like_count', 'comment_count',
-            'likes_per_1k_views', 'comments_per_1k_views'
+            'likes_per_1k_views', 'comments_per_1k_views',
+            # Derived from view/like counts (post-publish)
+            'engagement_ratio'
         ]
         
-        # Get numeric features only
-        feature_cols = [col for col in df.columns 
-                       if col not in exclude_cols 
-                       and df[col].dtype in [np.int64, np.float64, np.bool_]]
+        # Get all numeric features (include uint8 one-hot, etc.)
+        feature_cols = [
+            col for col in df.columns
+            if col not in exclude_cols and is_numeric_dtype(df[col])
+        ]
         
         X = df[feature_cols].copy()
         y = df[target_col].copy()
@@ -112,11 +116,12 @@ class ImprovedModelTrainer:
         # Reduced parameter grid for faster optimization
         # Can be expanded for better results but takes longer
         param_grid = {
-            'n_estimators': [300, 400, 500],
-            'max_depth': [8, 10, 12],
+            # Keep this grid practical for local runs; expand if you have time/compute
+            'n_estimators': [300, 500],
+            'max_depth': [8, 10],
             'learning_rate': [0.01, 0.05],
-            'subsample': [0.8, 0.9],
-            'colsample_bytree': [0.8, 0.9],
+            'subsample': [0.8],
+            'colsample_bytree': [0.8],
             'min_child_weight': [1, 3],
             'reg_alpha': [0, 0.1],
             'reg_lambda': [1, 1.5]
@@ -151,10 +156,11 @@ class ImprovedModelTrainer:
         print("\nOptimizing Random Forest hyperparameters...")
         
         param_grid = {
-            'n_estimators': [100, 200, 300],
-            'max_depth': [10, 15, 20, None],
-            'min_samples_split': [2, 5, 10],
-            'min_samples_leaf': [1, 2, 4],
+            # Practical grid; expand if desired
+            'n_estimators': [200, 300],
+            'max_depth': [15, 20, None],
+            'min_samples_split': [2, 5],
+            'min_samples_leaf': [1, 2],
             'max_features': ['sqrt', 'log2']
         }
         
@@ -181,11 +187,12 @@ class ImprovedModelTrainer:
         print("\nOptimizing Gradient Boosting hyperparameters...")
         
         param_grid = {
-            'n_estimators': [100, 200, 300],
-            'learning_rate': [0.01, 0.05, 0.1],
-            'max_depth': [5, 7, 9],
-            'subsample': [0.8, 0.9, 1.0],
-            'min_samples_split': [2, 5, 10]
+            # Practical grid; expand if desired
+            'n_estimators': [150, 300],
+            'learning_rate': [0.01, 0.05],
+            'max_depth': [5, 7],
+            'subsample': [0.8, 1.0],
+            'min_samples_split': [2, 5]
         }
         
         base_model = GradientBoostingRegressor(random_state=42)

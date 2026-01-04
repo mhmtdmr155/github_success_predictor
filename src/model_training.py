@@ -14,6 +14,7 @@ from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 import xgboost as xgb
 from datetime import datetime
+from pandas.api.types import is_numeric_dtype
 
 # Add parent directory to path for imports
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -47,13 +48,16 @@ class ModelTrainer:
             'duration_category', 'channel_size', target_col,
             # Exclude engagement metrics that we won't have for new videos
             'view_count', 'like_count', 'comment_count',
-            'likes_per_1k_views', 'comments_per_1k_views'
+            'likes_per_1k_views', 'comments_per_1k_views',
+            # Derived from view/like counts (post-publish)
+            'engagement_ratio'
         ]
         
-        # Get numeric features only
-        feature_cols = [col for col in df.columns 
-                       if col not in exclude_cols 
-                       and df[col].dtype in [np.int64, np.float64, np.bool_]]
+        # Get all numeric features (include uint8 one-hot, etc.)
+        feature_cols = [
+            col for col in df.columns
+            if col not in exclude_cols and is_numeric_dtype(df[col])
+        ]
         
         X = df[feature_cols].fillna(0)
         y = df[target_col]
