@@ -62,21 +62,41 @@ class ModelTrainer:
         X = df[feature_cols].fillna(0)
         y = df[target_col]
         
+        # Remove rows with NaN in target
+        mask = ~y.isna()
+        X = X[mask]
+        y = y[mask]
+        
         self.feature_names = list(X.columns)
         
         return X, y
     
-    def train_test_split_data(self, X, y, test_size=0.2, random_state=42):
-        """Split data into train and test sets"""
-        X_train, X_test, y_train, y_test = train_test_split(
+    def train_test_split_data(self, X, y, test_size=0.2, val_size=0.15, random_state=42):
+        """Split data into train, validation, and test sets"""
+        # First split: separate test set (20%)
+        X_temp, X_test, y_temp, y_test = train_test_split(
             X, y, test_size=test_size, random_state=random_state
         )
         
-        # Scale features
+        # Second split: separate train and validation from remaining data
+        # val_size is relative to the remaining data after test split
+        # If test_size=0.2, then temp has 0.8, so val_size=0.15 means 15% of total = 0.15/0.8 = 0.1875 of temp
+        val_size_adjusted = val_size / (1 - test_size)
+        X_train, X_val, y_train, y_val = train_test_split(
+            X_temp, y_temp, test_size=val_size_adjusted, random_state=random_state
+        )
+        
+        # Scale features (fit on train, transform on val and test)
         X_train_scaled = self.scaler.fit_transform(X_train)
+        X_val_scaled = self.scaler.transform(X_val)
         X_test_scaled = self.scaler.transform(X_test)
         
-        return X_train_scaled, X_test_scaled, y_train, y_test
+        print(f"\nData Split:")
+        print(f"  Train: {X_train.shape[0]} samples ({100*X_train.shape[0]/len(X):.1f}%)")
+        print(f"  Validation: {X_val.shape[0]} samples ({100*X_val.shape[0]/len(X):.1f}%)")
+        print(f"  Test: {X_test.shape[0]} samples ({100*X_test.shape[0]/len(X):.1f}%)")
+        
+        return X_train_scaled, X_val_scaled, X_test_scaled, y_train, y_val, y_test
     
     def train_linear_regression(self, X_train, y_train):
         """Train Linear Regression model"""
@@ -158,49 +178,81 @@ class ModelTrainer:
         scores = cross_val_score(model, X_train, y_train, cv=cv, scoring='r2')
         return scores.mean(), scores.std()
     
-    def train_all_models(self, X_train, X_test, y_train, y_test):
-        """Train and evaluate all models"""
+    def train_all_models(self, X_train, X_val, X_test, y_train, y_val, y_test):
+        """Train and evaluate all models using train, validation, and test sets"""
         print("\n" + "=" * 60)
         print("MODEL TRAINING")
         print("=" * 60)
+        print("Using Train-Validation-Test split for model evaluation")
         
         results = {}
         
         # Train Linear Regression
         lr_model = self.train_linear_regression(X_train, y_train)
-        lr_metrics, _ = self.evaluate_model(lr_model, X_test, y_test, "Linear Regression")
-        results['Linear Regression'] = {'model': lr_model, 'metrics': lr_metrics}
+        lr_metrics_val, _ = self.evaluate_model(lr_model, X_val, y_val, "Linear Regression (Validation)")
+        lr_metrics_test, _ = self.evaluate_model(lr_model, X_test, y_test, "Linear Regression (Test)")
+        results['Linear Regression'] = {
+            'model': lr_model, 
+            'metrics_val': lr_metrics_val,
+            'metrics_test': lr_metrics_test
+        }
         
         # Train Random Forest
         rf_model = self.train_random_forest(X_train, y_train)
-        rf_metrics, _ = self.evaluate_model(rf_model, X_test, y_test, "Random Forest")
-        results['Random Forest'] = {'model': rf_model, 'metrics': rf_metrics}
+        rf_metrics_val, _ = self.evaluate_model(rf_model, X_val, y_val, "Random Forest (Validation)")
+        rf_metrics_test, _ = self.evaluate_model(rf_model, X_test, y_test, "Random Forest (Test)")
+        results['Random Forest'] = {
+            'model': rf_model, 
+            'metrics_val': rf_metrics_val,
+            'metrics_test': rf_metrics_test
+        }
         
         # Train XGBoost
         xgb_model = self.train_xgboost(X_train, y_train)
-        xgb_metrics, _ = self.evaluate_model(xgb_model, X_test, y_test, "XGBoost")
-        results['XGBoost'] = {'model': xgb_model, 'metrics': xgb_metrics}
+        xgb_metrics_val, _ = self.evaluate_model(xgb_model, X_val, y_val, "XGBoost (Validation)")
+        xgb_metrics_test, _ = self.evaluate_model(xgb_model, X_test, y_test, "XGBoost (Test)")
+        results['XGBoost'] = {
+            'model': xgb_model, 
+            'metrics_val': xgb_metrics_val,
+            'metrics_test': xgb_metrics_test
+        }
         
         # Train Gradient Boosting
         gb_model = self.train_gradient_boosting(X_train, y_train)
-        gb_metrics, _ = self.evaluate_model(gb_model, X_test, y_test, "Gradient Boosting")
-        results['Gradient Boosting'] = {'model': gb_model, 'metrics': gb_metrics}
+        gb_metrics_val, _ = self.evaluate_model(gb_model, X_val, y_val, "Gradient Boosting (Validation)")
+        gb_metrics_test, _ = self.evaluate_model(gb_model, X_test, y_test, "Gradient Boosting (Test)")
+        results['Gradient Boosting'] = {
+            'model': gb_model, 
+            'metrics_val': gb_metrics_val,
+            'metrics_test': gb_metrics_test
+        }
         
-        # Find best model (based on R² score)
-        best_model_name = max(results.keys(), key=lambda k: results[k]['metrics']['R²'])
+        # Find best model (based on validation R² score)
+        best_model_name = max(results.keys(), key=lambda k: results[k]['metrics_val']['R²'])
         self.best_model = results[best_model_name]['model']
         self.best_model_name = best_model_name
         
         print("\n" + "=" * 60)
-        print("MODEL COMPARISON")
+        print("MODEL COMPARISON (Validation Set)")
         print("=" * 60)
-        print(f"{'Model':<25} {'R²':<10} {'MAE':<15} {'RMSE':<15}")
+        print(f"{'Model':<25} {'R² (Val)':<12} {'MAE (Val)':<15} {'RMSE (Val)':<15}")
         print("-" * 60)
         for name, result in results.items():
-            metrics = result['metrics']
-            print(f"{name:<25} {metrics['R²']:<10.4f} {metrics['MAE']:<15,.0f} {metrics['RMSE']:<15,.0f}")
+            metrics = result['metrics_val']
+            print(f"{name:<25} {metrics['R²']:<12.4f} {metrics['MAE']:<15,.0f} {metrics['RMSE']:<15,.0f}")
         
-        print(f"\n[Best Model] {best_model_name} (R² = {results[best_model_name]['metrics']['R²']:.4f})")
+        print("\n" + "=" * 60)
+        print("FINAL MODEL EVALUATION (Test Set)")
+        print("=" * 60)
+        print(f"{'Model':<25} {'R² (Test)':<12} {'MAE (Test)':<15} {'RMSE (Test)':<15}")
+        print("-" * 60)
+        for name, result in results.items():
+            metrics = result['metrics_test']
+            print(f"{name:<25} {metrics['R²']:<12.4f} {metrics['MAE']:<15,.0f} {metrics['RMSE']:<15,.0f}")
+        
+        print(f"\n[Best Model] {best_model_name}")
+        print(f"  Validation R²: {results[best_model_name]['metrics_val']['R²']:.4f}")
+        print(f"  Test R²: {results[best_model_name]['metrics_test']['R²']:.4f}")
         
         return results
     
@@ -274,12 +326,11 @@ def main():
     X, y = trainer.prepare_data(df)
     print(f"\nFeatures: {X.shape[1]}, Samples: {X.shape[0]}")
     
-    # Split data
-    X_train, X_test, y_train, y_test = trainer.train_test_split_data(X, y)
-    print(f"Train set: {X_train.shape[0]}, Test set: {X_test.shape[0]}")
+    # Split data into train, validation, and test sets
+    X_train, X_val, X_test, y_train, y_val, y_test = trainer.train_test_split_data(X, y)
     
     # Train all models
-    results = trainer.train_all_models(X_train, X_test, y_train, y_test)
+    results = trainer.train_all_models(X_train, X_val, X_test, y_train, y_val, y_test)
     
     # Feature importance
     if trainer.best_model and hasattr(trainer.best_model, 'feature_importances_'):

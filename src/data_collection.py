@@ -43,7 +43,8 @@ class YouTubeDataCollector:
             )
             response = request.execute()
             
-            if response['items']:
+            # Check if response has items and is not empty
+            if 'items' in response and response['items']:
                 channel = response['items'][0]
                 return {
                     'channel_id': channel_id,
@@ -52,8 +53,19 @@ class YouTubeDataCollector:
                     'channel_video_count': int(channel['statistics'].get('videoCount', 0)),
                     'channel_view_count': int(channel['statistics'].get('viewCount', 0))
                 }
+            else:
+                # Check for errors in response
+                if 'error' in response:
+                    print(f"API Error for channel {channel_id}: {response['error']}")
+                else:
+                    print(f"No items found for channel {channel_id}")
         except HttpError as e:
-            print(f"Error fetching channel info: {e}")
+            print(f"Error fetching channel info for {channel_id}: {e}")
+        except KeyError as e:
+            print(f"KeyError fetching channel info for {channel_id}: {e}")
+            print(f"Response keys: {list(response.keys()) if 'response' in locals() else 'No response'}")
+        except Exception as e:
+            print(f"Unexpected error fetching channel info for {channel_id}: {e}")
         return None
     
     def get_channel_videos(self, channel_id, max_results=50):
@@ -178,8 +190,20 @@ class YouTubeDataCollector:
         if current_date is None:
             current_date = datetime.now()
         
-        publish_date = datetime.fromisoformat(video_data['published_at'].replace('Z', '+00:00'))
-        days_since_publish = (current_date - publish_date.replace(tzinfo=None)).days
+        # Handle both string and Timestamp formats
+        published_at = video_data['published_at']
+        if isinstance(published_at, str):
+            publish_date = datetime.fromisoformat(published_at.replace('Z', '+00:00'))
+        else:
+            # It's already a Timestamp/datetime object
+            from pandas import to_datetime
+            publish_date = to_datetime(published_at).to_pydatetime()
+        
+        # Remove timezone for comparison
+        if publish_date.tzinfo is not None:
+            publish_date = publish_date.replace(tzinfo=None)
+        
+        days_since_publish = (current_date - publish_date).days
         
         view_count = video_data['view_count']
         

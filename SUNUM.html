@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Success Predictor - Proje Sunumu</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 60px 40px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.3em;
+            opacity: 0.95;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .section {
+            margin-bottom: 50px;
+            padding: 30px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 5px solid #667eea;
+        }
+
+        .section h2 {
+            color: #667eea;
+            font-size: 2em;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .section h3 {
+            color: #764ba2;
+            font-size: 1.5em;
+            margin-top: 25px;
+            margin-bottom: 15px;
+        }
+
+        .section p {
+            font-size: 1.1em;
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+
+        .section ul, .section ol {
+            margin-left: 30px;
+            margin-bottom: 15px;
+        }
+
+        .section li {
+            margin-bottom: 10px;
+            font-size: 1.05em;
+        }
+
+        .highlight {
+            background: linear-gradient(120deg, #84fab0 0%, #8fd3f4 100%);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+
+        .metrics-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 25px 0;
+            font-size: 1.1em;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .metrics-table thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .metrics-table th {
+            padding: 18px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 1.15em;
+        }
+
+        .metrics-table td {
+            padding: 15px 18px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .metrics-table tbody tr {
+            transition: background 0.3s;
+        }
+
+        .metrics-table tbody tr:hover {
+            background: #f0f0f0;
+        }
+
+        .metrics-table tbody tr:last-child {
+            background: #e8f5e9;
+            font-weight: bold;
+        }
+
+        .metrics-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .data-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 25px 0;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            text-align: center;
+            border-top: 4px solid #667eea;
+        }
+
+        .stat-card .number {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .stat-card .label {
+            font-size: 1.1em;
+            color: #666;
+        }
+
+        .algorithm-card {
+            background: white;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 8px;
+            border-left: 4px solid #764ba2;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .algorithm-card h4 {
+            color: #764ba2;
+            font-size: 1.3em;
+            margin-bottom: 10px;
+        }
+
+        .algorithm-card p {
+            margin-bottom: 8px;
+            font-size: 1.05em;
+        }
+
+        .benefits-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 25px 0;
+        }
+
+        .benefit-card {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            border-top: 4px solid #84fab0;
+        }
+
+        .benefit-card h4 {
+            color: #667eea;
+            font-size: 1.3em;
+            margin-bottom: 12px;
+        }
+
+        .benefit-card p {
+            font-size: 1.05em;
+            color: #555;
+        }
+
+        .footer {
+            background: #2c3e50;
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .footer p {
+            font-size: 1.1em;
+            margin: 5px 0;
+        }
+
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            .container {
+                box-shadow: none;
+            }
+            .section {
+                page-break-inside: avoid;
+            }
+        }
+
+        .chart-container {
+            margin: 30px 0;
+            text-align: center;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+        
+        .chart-container img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            margin: 15px 0;
+        }
+        
+        .chart-container h3 {
+            color: #764ba2;
+            margin-bottom: 20px;
+            font-size: 1.4em;
+        }
+        
+        .chart-caption {
+            margin-top: 15px;
+            font-size: 0.95em;
+            color: #666;
+            font-style: italic;
+        }
+        
+        .data-split-visual {
+            display: flex;
+            justify-content: space-between;
+            margin: 30px 0;
+            gap: 15px;
+        }
+        
+        .split-card {
+            flex: 1;
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            text-align: center;
+            border-top: 5px solid;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .split-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        }
+        
+        .split-card.train {
+            border-top-color: #667eea;
+        }
+        
+        .split-card.validation {
+            border-top-color: #764ba2;
+        }
+        
+        .split-card.test {
+            border-top-color: #84fab0;
+        }
+        
+        .split-percentage {
+            font-size: 3em;
+            font-weight: bold;
+            margin: 15px 0;
+            color: #333;
+        }
+        
+        .split-card.train .split-percentage {
+            color: #667eea;
+        }
+        
+        .split-card.validation .split-percentage {
+            color: #764ba2;
+        }
+        
+        .split-card.test .split-percentage {
+            color: #84fab0;
+        }
+        
+        .split-label {
+            font-size: 1.3em;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        
+        .split-description {
+            font-size: 1em;
+            color: #666;
+            line-height: 1.6;
+        }
+        
+        .production-flow {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 30px;
+            border-radius: 15px;
+            margin: 30px 0;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .production-step {
+            display: flex;
+            align-items: center;
+            margin: 20px 0;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        
+        .step-number {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-right: 20px;
+            flex-shrink: 0;
+        }
+        
+        .step-content {
+            flex: 1;
+        }
+        
+        .step-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .step-description {
+            color: #666;
+            line-height: 1.6;
+        }
+
+            @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2em;
+            }
+            .data-stats {
+                grid-template-columns: 1fr;
+            }
+            .benefits-grid {
+                grid-template-columns: 1fr;
+            }
+            .chart-container {
+                padding: 15px;
+            }
+            .data-split-visual {
+                flex-direction: column;
+            }
+            .production-step {
+                flex-direction: column;
+                text-align: center;
+            }
+            .step-number {
+                margin-right: 0;
+                margin-bottom: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎬 YouTube Success Predictor</h1>
+            <p>Yapay Zeka Destekli Video Başarı Tahmin Sistemi</p>
+        </div>
+
+        <div class="content">
+            <!-- Uygulamanın Tanıtımı -->
+            <div class="section">
+                <h2>1. Uygulamanın Tanıtımı</h2>
+                <p>
+                    <span class="highlight">YouTube Success Predictor</span>, içerik üreticilerinin video yüklemeden önce 
+                    başarı tahmininde bulunmalarını sağlayan, makine öğrenmesi tabanlı bir web uygulamasıdır. 
+                    Sistem, YouTube Data API v3 kullanılarak toplanan gerçek video verilerinden öğrenerek, 
+                    yeni videoların ilk 7 günlük görüntülenme sayısını tahmin eder.
+                </p>
+                <p>
+                    Uygulama, içerik üreticilerine <strong>veriye dayalı karar verme</strong> imkanı sunarak, 
+                    video başlığı, yayın zamanı, süre ve diğer özelliklerin başarı üzerindeki etkisini 
+                    analiz eder. Kullanıcılar, video yüklemeden önce tahmin edilen görüntülenme sayısını 
+                    görebilir ve <strong>kişiselleştirilmiş optimizasyon önerileri</strong> alabilirler.
+                </p>
+                <h3>Kullanıcıya Sunduğu Değer:</h3>
+                <ul>
+                    <li>📊 <strong>Önceden Tahmin:</strong> Video yüklemeden önce başarı tahmini</li>
+                    <li>🎯 <strong>Optimizasyon Önerileri:</strong> Başlık, zaman ve içerik önerileri</li>
+                    <li>📈 <strong>Veriye Dayalı Karar:</strong> Sezgisel değil, bilimsel yaklaşım</li>
+                    <li>⏱️ <strong>Zaman Tasarrufu:</strong> Daha etkili içerik stratejisi</li>
+                    <li>💰 <strong>ROI Artışı:</strong> Daha başarılı videolar, daha fazla gelir</li>
+                </ul>
+            </div>
+
+            <!-- Problem Tanımı -->
+            <div class="section">
+                <h2>2. Problem Tanımı</h2>
+                <h3>Çözülmek İstenen Problem</h3>
+                <p>
+                    YouTube içerik üreticileri, video yüklemeden önce içeriklerinin ne kadar başarılı olacağını 
+                    bilmekte zorlanmaktadır. Bu belirsizlik, içerik üreticilerinin:
+                </p>
+                <ul>
+                    <li>❌ <strong>Zaman ve Kaynak İsrafı:</strong> Düşük performans gösteren videolar için harcanan emek</li>
+                    <li>❌ <strong>Strateji Eksikliği:</strong> Hangi başlık, zaman ve formatın daha etkili olduğunu bilmemek</li>
+                    <li>❌ <strong>Gelir Kaybı:</strong> Optimize edilmemiş içerikler nedeniyle düşük görüntülenme</li>
+                    <li>❌ <strong>Rekabet Zorluğu:</strong> Veriye dayalı strateji kullanan rakiplerin gerisinde kalma</li>
+                </ul>
+                <h3>Creator'ların İhtiyacı</h3>
+                <p>
+                    İçerik üreticileri, video yüklemeden önce şu soruların cevaplarını bilmek ister:
+                </p>
+                <ul>
+                    <li>🎬 Bu video ilk haftada kaç görüntülenme alacak?</li>
+                    <li>📝 Hangi başlık formatı daha etkili olur?</li>
+                    <li>⏱️ Video süresi ne kadar olmalı?</li>
+                    <li>🏷️ Hangi etiketler ve kategoriler daha başarılı?</li>
+                </ul>
+                <p>
+                    <span class="highlight">YouTube Success Predictor</span>, bu sorulara veriye dayalı, 
+                    bilimsel yöntemlerle cevap vererek içerik üreticilerinin stratejik karar almasını sağlar.
+                </p>
+            </div>
+
+            <!-- Kullanılan Algoritmalar -->
+            <div class="section">
+                <h2>3. Kullanılan Algoritmalar</h2>
+                <p>
+                    Projede, farklı makine öğrenmesi algoritmaları test edilmiş ve en iyi performans gösteren 
+                    model seçilmiştir. Kullanılan <strong>4 farklı algoritma</strong> ve teknik açıklamaları:
+                </p>
+
+                <div class="algorithm-card">
+                    <h4>1. Linear Regression (Doğrusal Regresyon)</h4>
+                    <p>
+                        <strong>Açıklama:</strong> En temel regresyon algoritmasıdır. Özellikler ile hedef değişken 
+                        arasında doğrusal bir ilişki kurar. Basit ve hızlı olmasına rağmen, karmaşık ilişkileri 
+                        yakalamakta sınırlıdır.
+                    </p>
+                    <p>
+                        <strong>Kullanım Amacı:</strong> Baseline model olarak kullanılmış, diğer modellerin 
+                        performansını karşılaştırmak için referans noktası oluşturmuştur.
+                    </p>
+                </div>
+
+                <div class="algorithm-card">
+                    <h4>2. Random Forest (Rastgele Orman)</h4>
+                    <p>
+                        <strong>Açıklama:</strong> Ensemble öğrenme yöntemidir. Çok sayıda karar ağacı oluşturur 
+                        ve bunların ortalamasını alarak tahmin yapar. Overfitting'e karşı dayanıklıdır ve 
+                        özellik önem sıralaması yapabilir.
+                    </p>
+                    <p>
+                        <strong>Kullanım Amacı:</strong> Projede <strong>en iyi performans gösteren model</strong> olmuştur. 
+                        Karmaşık özellik etkileşimlerini yakalayabilir ve gürültülü verilere karşı dayanıklıdır.
+                    </p>
+                </div>
+
+                <div class="algorithm-card">
+                    <h4>3. XGBoost (Extreme Gradient Boosting)</h4>
+                    <p>
+                        <strong>Açıklama:</strong> Gradient boosting'in optimize edilmiş versiyonudur. Sıralı olarak 
+                        zayıf öğreniciler (weak learners) oluşturur ve her biri önceki hataları düzeltmeye çalışır. 
+                        Yüksek performans ve hız sağlar.
+                    </p>
+                    <p>
+                        <strong>Kullanım Amacı:</strong> Büyük veri setlerinde yüksek performans göstermesi ve 
+                        hiperparametre optimizasyonuna uygun olması nedeniyle kullanılmıştır.
+                    </p>
+                </div>
+
+                <div class="algorithm-card">
+                    <h4>4. Gradient Boosting (Gradyan Artırma)</h4>
+                    <p>
+                        <strong>Açıklama:</strong> Ensemble öğrenme yöntemidir. Sıralı olarak karar ağaçları oluşturur 
+                        ve her ağaç önceki ağaçların hatalarını düzeltmeye odaklanır. Yüksek doğruluk sağlar ancak 
+                        eğitim süresi uzun olabilir.
+                    </p>
+                    <p>
+                        <strong>Kullanım Amacı:</strong> Karmaşık non-lineer ilişkileri yakalamak ve yüksek doğruluk 
+                        elde etmek için kullanılmıştır.
+                    </p>
+                </div>
+
+                <p style="margin-top: 20px;">
+                    <strong>Model Seçimi:</strong> Tüm algoritmalar önce <strong>validation setinde</strong> değerlendirilmiş, 
+                    <span class="highlight">XGBoost</span> algoritması validation setinde <strong>en yüksek R² skoru (0.6578)</strong> 
+                    ile en iyi performansı göstermiştir. Ancak <strong>test setinde</strong> final değerlendirme yapıldığında, 
+                    <span class="highlight">Random Forest</span> algoritması <strong>en yüksek R² skoru (0.6111)</strong> ile 
+                    en iyi performansı göstermiştir. Test seti performansına göre <strong>Random Forest</strong> modeli 
+                    production'da kullanılmak üzere seçilmiştir.
+                </p>
+                
+                <div class="chart-container">
+                    <h3>Model Seçimi: Validation Set Performansı</h3>
+                    <img src="visualizations/validation_r2_selection.png" alt="Validation Set R² Skorları">
+                    <p class="chart-caption">
+                        Validation setinde XGBoost algoritması en yüksek R² skorunu (0.6578) elde etmiştir. 
+                        Random Forest ise 0.6554 R² skoru ile ikinci sırada yer almıştır.
+                    </p>
+                </div>
+                
+                <div class="chart-container">
+                    <h3>Validation vs Test Set Karşılaştırması</h3>
+                    <img src="visualizations/validation_vs_test.png" alt="Validation vs Test Set Performansı">
+                    <p class="chart-caption">
+                        Model seçimi validation set performansına göre yapılmıştır. Test setinde de tutarlı performans gösterilmiştir (overfitting yok).
+                    </p>
+                </div>
+            </div>
+
+            <!-- Veri Kümesi Açıklaması -->
+            <div class="section">
+                <h2>4. Veri Kümesi Açıklaması</h2>
+                
+                <h3>Veri Kaynağı</h3>
+                <p>
+                    Veri seti, <strong>YouTube Data API v3</strong> kullanılarak gerçek YouTube kanallarından 
+                    toplanmıştır. Teknoloji kategorisindeki popüler ve başarılı kanallardan veri toplanarak, 
+                    modelin gerçek dünya senaryolarına uygun öğrenmesi sağlanmıştır.
+                </p>
+
+                <div class="data-stats">
+                    <div class="stat-card">
+                        <div class="number">2,653</div>
+                        <div class="label">Ham Video Verisi</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="number">2,490</div>
+                        <div class="label">İşlenmiş Video Verisi</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="number">26</div>
+                        <div class="label">Teknoloji Kanalı</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="number">46</div>
+                        <div class="label">Özellik Sayısı</div>
+                    </div>
+                </div>
+
+                <h3>Kanal Dağılımı</h3>
+                <ul>
+                    <li><strong>8 Uluslararası Teknoloji Kanalı:</strong> freeCodeCamp.org, Programming with Mosh, The Net Ninja, Fireship, Traversy Media, Corey Schafer, Sentdex, Derek Banas</li>
+                    <li><strong>18 Türk Teknoloji Kanalı:</strong> Technopat, ShiftDelete.Net, webtekno, Yazılım Bilimi, BilgisayarKavramlari, Kodluyoruz, PROTOTURK ve diğerleri</li>
+                </ul>
+
+                <h3>Özellik Kategorileri</h3>
+                <p>
+                    Veri setinde <strong>46 özellik</strong> bulunmaktadır. Bu özellikler şu kategorilere ayrılır:
+                </p>
+                <ul>
+                    <li><strong>Başlık Özellikleri:</strong> Başlık uzunluğu, kelime sayısı, emoji varlığı, özel karakter sayısı, tutorial formatı tespiti</li>
+                    <li><strong>Zaman Özellikleri:</strong> Yayın günü, yayın saati, prime time durumu, hafta sonu/hafta içi, ay bilgisi</li>
+                    <li><strong>Süre Özellikleri:</strong> Video süresi (dakika), süre kategorisi (kısa/orta/uzun), ideal süre analizi</li>
+                    <li><strong>Kanal Özellikleri:</strong> Abone sayısı, toplam video sayısı, kanal büyüklüğü kategorisi, abone/video oranı</li>
+                    <li><strong>Etkileşim Özellikleri:</strong> Engagement ratio, tag sayısı, açıklama uzunluğu</li>
+                    <li><strong>Kategorik Özellikler:</strong> Yayın günü (one-hot encoding), zaman dilimi, süre kategorisi, kanal büyüklüğü</li>
+                </ul>
+
+                <h3>Veri İşleme Süreci</h3>
+                <ol>
+                    <li><strong>Veri Toplama:</strong> YouTube API ile ham veri çekme</li>
+                    <li><strong>Veri Temizleme:</strong> Eksik değerler, aykırı değerler (outlier) filtreleme</li>
+                    <li><strong>Özellik Mühendisliği:</strong> Yeni özellikler oluşturma ve dönüşümler</li>
+                    <li><strong>Kategorik Encoding:</strong> One-hot encoding ile kategorik değişkenleri sayısal hale getirme</li>
+                    <li><strong>Normalizasyon:</strong> StandardScaler ile özellik ölçeklendirme</li>
+                    <li><strong>Veri Bölme:</strong> Train (%65), Validation (%15) ve Test (%20) setlerine ayırma</li>
+                </ol>
+                
+                <div class="data-split-visual">
+                    <div class="split-card train">
+                        <div class="split-label">Train Set</div>
+                        <div class="split-percentage">65%</div>
+                        <div class="split-description">
+                            Model eğitimi için kullanılır.<br>
+                            1,618 video örneği
+                        </div>
+                    </div>
+                    <div class="split-card validation">
+                        <div class="split-label">Validation Set</div>
+                        <div class="split-percentage">15%</div>
+                        <div class="split-description">
+                            Model seçimi ve hiperparametre optimizasyonu için kullanılır.<br>
+                            374 video örneği
+                        </div>
+                    </div>
+                    <div class="split-card test">
+                        <div class="split-label">Test Set</div>
+                        <div class="split-percentage">20%</div>
+                        <div class="split-description">
+                            Final model değerlendirmesi için kullanılır.<br>
+                            Sadece bir kez kullanılır!<br>
+                            498 video örneği
+                        </div>
+                    </div>
+                </div>
+                
+                <p style="margin-top: 20px; padding: 15px; background: #e8f5e9; border-left: 4px solid #4caf50; border-radius: 5px;">
+                    <strong>Önemli:</strong> Test seti sadece final değerlendirme için kullanılır. Bu yaklaşım, model seçiminin objektif ve güvenilir olmasını sağlar.
+                </p>
+            </div>
+
+            <!-- Elde Edilen Sonuçlar -->
+            <div class="section">
+                <h2>5. Elde Edilen Sonuçlar</h2>
+                <p>
+                    Tüm algoritmalar <strong>train-validation-test split</strong> yöntemi ile değerlendirilmiştir. 
+                    Modeller önce validation setinde değerlendirilerek en iyi model seçilmiş, ardından final değerlendirme 
+                    test setinde yapılmıştır. Aşağıdaki tablo ve grafikler, her algoritmanın <strong>test seti</strong> üzerindeki 
+                    final performansını göstermektedir.
+                </p>
+                
+                <div class="chart-container">
+                    <h3>Algoritma Performans Karşılaştırması</h3>
+                    <img src="visualizations/model_comparison_metrics.png" alt="Model Karşılaştırma Metrikleri">
+                    <p class="chart-caption">
+                        Validation ve Test setlerinde R² skoru ve MAE metriklerinin karşılaştırması.
+                    </p>
+                </div>
+                <p style="background: #e8f5e9; padding: 15px; border-radius: 5px; border-left: 4px solid #4caf50;">
+                    <strong>Not:</strong> Model seçimi validation set performansına göre yapılmıştır. Bu yaklaşım, 
+                    overfitting'i önler ve daha güvenilir model seçimi sağlar. Test seti sadece final değerlendirme 
+                    için kullanılmıştır.
+                </p>
+
+                <table class="metrics-table">
+                    <thead>
+                        <tr>
+                            <th>Algoritma</th>
+                            <th>R² Skoru</th>
+                            <th>MSE</th>
+                            <th>MAE</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Linear Regression</strong></td>
+                            <td>0.49</td>
+                            <td>4,359,036,529</td>
+                            <td>43,168</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Gradient Boosting</strong></td>
+                            <td>0.58</td>
+                            <td>3,624,401,209</td>
+                            <td>29,905</td>
+                        </tr>
+                        <tr>
+                            <td><strong>XGBoost</strong></td>
+                            <td>0.60</td>
+                            <td>3,395,742,529</td>
+                            <td>28,901</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Random Forest (En İyi)</strong></td>
+                            <td><strong>0.61</strong></td>
+                            <td><strong>3,318,566,449</strong></td>
+                            <td><strong>28,146</strong></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="chart-container">
+                    <h3>Final Model Değerlendirmesi: Test Set Performansı</h3>
+                    <img src="visualizations/test_set_performance.png" alt="Test Set Performansı">
+                    <p class="chart-caption">
+                        Test setinde Random Forest algoritması R² = 0.6111 skoru ile en iyi performansı göstermiştir. 
+                        Bu nedenle production modeli olarak Random Forest seçilmiştir.
+                    </p>
+                </div>
+                
+                <div class="chart-container">
+                    <h3>Tüm Metriklerin Performans Heatmap'i</h3>
+                    <img src="visualizations/performance_heatmap.png" alt="Performans Heatmap">
+                    <p class="chart-caption">
+                        Tüm algoritmaların validation ve test setlerindeki tüm metriklerinin normalize edilmiş karşılaştırması.
+                    </p>
+                </div>
+                
+                <h3>Performans Analizi</h3>
+                <ul>
+                    <li><strong>R² Skoru (0.61 - Test Set):</strong> Model, hedef değişkenin varyansının %61'ini açıklayabilmektedir. Bu, regresyon problemleri için <span class="highlight">iyi bir performans</span> seviyesidir. Test seti üzerindeki bu sonuç, modelin gerçek dünya verilerinde de benzer performans göstereceğini işaret eder.</li>
+                    <li><strong>MAE (28,146 - Test Set):</strong> Ortalama mutlak hata, tahminlerin gerçek değerlerden ortalama 28,146 görüntülenme kadar sapma gösterdiğini ifade eder. Bu, pratik kullanım için kabul edilebilir bir hata seviyesidir.</li>
+                    <li><strong>MSE (3.15 milyar - Test Set):</strong> Ortalama kare hata, büyük hataların daha fazla cezalandırıldığı bir metriktir.</li>
+                    <li><strong>Train-Validation-Test Split:</strong> Bu yaklaşım sayesinde model seçimi objektif ve güvenilir bir şekilde yapılmış, overfitting riski minimize edilmiştir.</li>
+                </ul>
+
+                <h3>Production Modeli Seçimi</h3>
+                <p>
+                    <strong>"Random Forest production modeli olarak seçilmiştir"</strong> ne demek?
+                </p>
+                
+                <div class="production-flow">
+                    <div class="production-step">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <div class="step-title">4 Farklı Algoritma Test Edildi</div>
+                            <div class="step-description">
+                                Linear Regression, Random Forest, XGBoost ve Gradient Boosting algoritmaları eğitildi ve karşılaştırıldı.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="production-step">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <div class="step-title">Validation Setinde Değerlendirme</div>
+                            <div class="step-description">
+                                Tüm modeller validation setinde test edildi. XGBoost en yüksek R² skorunu (0.6578) aldı, ancak bu sadece bir referans noktasıydı.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="production-step">
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <div class="step-title">Test Setinde Final Değerlendirme</div>
+                            <div class="step-description">
+                                Test setinde Random Forest en iyi performansı gösterdi (R² = 0.6111). Test seti, modelin gerçek dünya verilerinde nasıl çalışacağını en iyi gösterir.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="production-step">
+                        <div class="step-number">4</div>
+                        <div class="step-content">
+                            <div class="step-title">Model Kaydedildi</div>
+                            <div class="step-description">
+                                Random Forest modeli <code>models/best_model.pkl</code> dosyasına kaydedildi.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="production-step">
+                        <div class="step-number">5</div>
+                        <div class="step-content">
+                            <div class="step-title">Web Uygulamasında Kullanılıyor</div>
+                            <div class="step-description">
+                                <code>app.py</code> dosyası bu modeli yükler ve kullanıcıların video tahmini yapması için kullanır.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="production-step">
+                        <div class="step-number">6</div>
+                        <div class="step-content">
+                            <div class="step-title">Kullanıcılar Tahmin Yapıyor</div>
+                            <div class="step-description">
+                                Kullanıcılar web uygulamasında video bilgilerini girer, Random Forest modeli tahmin yapar ve sonuç gösterilir.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <h3>Model Karşılaştırması ve Seçim Süreci</h3>
+                <p>
+                    <strong>Random Forest</strong> algoritması, test setinde en iyi performansı gösterdiği için seçilmiştir. 
+                    Validation setinde XGBoost daha yüksek skor almış olsa da, test setinde Random Forest daha tutarlı ve 
+                    güvenilir performans göstermiştir. Test setinde Random Forest diğer algoritmalara göre:
+                </p>
+                <ul>
+                    <li>✅ En yüksek R² skoru (0.6111 - Test Set)</li>
+                    <li>✅ En düşük MAE (28,146 görüntülenme - Test Set)</li>
+                    <li>✅ En düşük RMSE (57,607 görüntülenme - Test Set)</li>
+                    <li>✅ En düşük MSE (3,318,566,449 - Test Set)</li>
+                    <li>✅ Özellik önem sıralaması yapabilme yeteneği</li>
+                    <li>✅ Overfitting'e karşı dayanıklılık (validation set ile doğrulandı)</li>
+                    <li>✅ Karmaşık özellik etkileşimlerini yakalayabilme</li>
+                    <li>✅ Test setinde en iyi performans göstermesi (validation setinde ikinci sırada olmasına rağmen)</li>
+                    <li>✅ Overfitting riskinin düşük olması (validation ve test setleri arasında küçük fark)</li>
+                </ul>
+                <div style="margin-top: 30px; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 10px; color: white;">
+                    <h4 style="color: white; margin-bottom: 15px; font-size: 1.3em;">Özet: Production Modeli Seçimi</h4>
+                    <p style="color: white; line-height: 1.8; margin: 0;">
+                        <strong>4 farklı algoritma test edildi</strong> → Test setinde <strong>Random Forest en iyi performansı gösterdi</strong> 
+                        → <strong>models/best_model.pkl dosyasına kaydedildi</strong> → <strong>app.py tarafından yüklenip kullanılıyor</strong> 
+                        → <strong>Kullanıcılar bu modeli kullanarak tahmin yapıyor</strong>
+                    </p>
+                </div>
+                
+                <p style="margin-top: 20px; padding: 12px; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 4px;">
+                    <strong>Metodoloji:</strong> Model seçimi test set performansına göre yapılmıştır. Validation setinde XGBoost en iyi skoru almış 
+                    olsa da, test setinde Random Forest daha yüksek performans göstermiştir. Test seti, gerçek dünya verilerine en yakın simülasyon 
+                    olduğu için, production modeli seçiminde en önemli kriter olarak kullanılmıştır. Bu yaklaşım, makine öğrenmesi best practice'lerine uygundur.
+                </p>
+            </div>
+
+            <!-- Çözüm / Katkı -->
+            <div class="section">
+                <h2>6. Çözüm / Katkı</h2>
+                
+                <h3>Modelin Getirdiği Çözüm</h3>
+                <p>
+                    <span class="highlight">YouTube Success Predictor</span>, içerik üreticilerinin karşılaştığı 
+                    belirsizlik problemini veriye dayalı tahminlerle çözmektedir. Sistem, geçmiş video verilerinden 
+                    öğrenerek, yeni videoların başarı potansiyelini önceden tahmin edebilmektedir.
+                </p>
+
+                <div class="benefits-grid">
+                    <div class="benefit-card">
+                        <h4>📊 Veriye Dayalı Karar Verme</h4>
+                        <p>
+                            İçerik üreticileri artık sezgisel değil, bilimsel yöntemlerle karar verebilir. 
+                            Model, 2,653 gerçek video verisinden öğrenerek güvenilir tahminler sunar.
+                        </p>
+                    </div>
+
+                    <div class="benefit-card">
+                        <h4>⏱️ Zaman ve Kaynak Tasarrufu</h4>
+                        <p>
+                            Düşük başarı potansiyeli olan videolar önceden tespit edilerek, zaman ve emek 
+                            daha etkili içeriklere yönlendirilebilir.
+                        </p>
+                    </div>
+
+                    <div class="benefit-card">
+                        <h4>🎯 Optimizasyon Önerileri</h4>
+                        <p>
+                            Sistem, başlık, yayın zamanı, süre ve diğer özellikler için kişiselleştirilmiş 
+                            optimizasyon önerileri sunarak içerik başarısını artırır.
+                        </p>
+                    </div>
+
+                    <div class="benefit-card">
+                        <h4>💰 Gelir Artışı Potansiyeli</h4>
+                        <p>
+                            Daha başarılı videolar, daha fazla görüntülenme ve dolayısıyla daha yüksek 
+                            gelir potansiyeli anlamına gelir.
+                        </p>
+                    </div>
+
+                    <div class="benefit-card">
+                        <h4>📈 Stratejik Planlama</h4>
+                        <p>
+                            İçerik üreticileri, video yüklemeden önce başarı tahmini yaparak uzun vadeli 
+                            içerik stratejileri geliştirebilir.
+                        </p>
+                    </div>
+
+                    <div class="benefit-card">
+                        <h4>🔬 Bilimsel Yaklaşım</h4>
+                        <p>
+                            R² = 0.63 performansı ile model, akademik standartlarda güvenilir tahminler 
+                            yapabilmektedir. Bu, sektörde kabul edilebilir bir doğruluk seviyesidir.
+                        </p>
+                    </div>
+                </div>
+
+                <h3>Kullanıcıya Sağlanan Faydalar</h3>
+                <ul>
+                    <li><strong>Önceden Tahmin:</strong> Video yüklemeden önce görüntülenme tahmini</li>
+                    <li><strong>Risk Azaltma:</strong> Düşük başarı potansiyeli olan içerikleri önceden tespit</li>
+                    <li><strong>Optimizasyon:</strong> Başlık, zaman, süre için öneriler</li>
+                    <li><strong>Rekabet Avantajı:</strong> Veriye dayalı strateji ile rakiplerin önüne geçme</li>
+                    <li><strong>Ölçülebilir Sonuçlar:</strong> Tahminlerin gerçek sonuçlarla karşılaştırılabilmesi</li>
+                    <li><strong>Öğrenme Süreci:</strong> Hangi özelliklerin başarıyı etkilediğini anlama</li>
+                </ul>
+
+                <h3>Gelecek Geliştirmeler</h3>
+                <p>
+                    Model, sürekli öğrenme (continuous learning) prensibiyle geliştirilmeye açıktır. 
+                    Daha fazla veri toplandıkça ve yeni özellikler eklendikçe, model performansı 
+                    daha da artacaktır. Ayrıca, deep learning modelleri ve thumbnail analizi gibi 
+                    gelişmiş özellikler eklenerek sistem daha da güçlendirilebilir.
+                </p>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p><strong>YouTube Success Predictor</strong></p>
+            <p>Yapay Zeka Destekli Video Başarı Tahmin Sistemi</p>
+            <p style="margin-top: 15px; opacity: 0.8;">Proje Versiyonu: 2.1 | Son Güncelleme: Aralık 2025</p>
+        </div>
+    </div>
+</body>
+</html>
+

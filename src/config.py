@@ -11,8 +11,9 @@ YOUTUBE_API_KEY = os.getenv('YOUTUBE_API_KEY', '')
 YOUTUBE_API_SERVICE_NAME = 'youtube'
 YOUTUBE_API_VERSION = 'v3'
 
-# Target Channels (Technology category - 10 popular channels)
+# Target Channels (Technology category - International + Turkish channels)
 TARGET_CHANNELS = [
+    # International Technology Channels
     'UC8butISFwT-Wl7EV0hUK0BQ',  # freeCodeCamp.org
     'UCWv7vMbMWH4-V0ZXdmDpPBA',  # Programming with Mosh
     'UCW5YeuERMmlnqo4oq8vwDeg',  # The Net Ninja
@@ -21,12 +22,37 @@ TARGET_CHANNELS = [
     'UC8A0M0eDttdB11MHxX58vXQ',  # Corey Schafer
     'UCu1xbgCV5o48h_BYCQD7K1g',  # Sentdex
     'UCJ0-OtVpF0wOKEqT2Z1HEtA',  # Derek Banas
-    'UC8butISFwT-Wl7EV0hUK0BQ',  # TechWorld with Nana
-    'UCsBjURrPoezykLs9EqgamOA'   # Web Dev Simplified
+    
+    # Turkish Technology Channels (Popüler ve Teknoloji Odaklı)
+    'UC-gs6ml23jQKvLC86LzpQ0g',  # Technopat
+    'UCzNu79N8Lq1wUY52MkhWKSA',  # ShiftDelete.Net
+    'UC26buublzO30XpR-KP2TfAw',  # webtekno
+    'UCZNZj3mkdCGJfCoKyl4bSYQ',  # Yazılım Bilimi
+    'UCq80ExEGpj3PQ9MCLMvpjtg',  # Sadık turan Şeylan
+    'UCkkgrhDCJheXQNIFqUVw0_g',  # BilgisayarKavramlari
+    'UCGNqBxR79QuNLja4VbSUR7w',  # Türk Teknoloji
+    'UChI_JJN9aD-YKegn4q7EHHQ',  # Sanayi ve Teknoloji Bakanlığı
+    'UCQ68rDQmMehUYntW4IU_ebQ',  # Turk Programlama
+    'UCewVCW38rsfKdl0VwR7sxpA',  # Türkiye Yazılım
+    'UCMPCc9hZ-YBZkEon9tzESVA',  # Tolga Özuygur
+    'UCleeGHYm74udRpj3-krDfdA',  # iPhonedo Türkiye
+    'UC8coOsD1DGLgDazU20oAw4Q',  # TurkDevs
+    'UC5QF2dQylucdASZpTnFLe9g',  # Radikal Yazılım
+    'UCX2uz7k2Z23aHCx209EY4vw',  # Go Türkiye
+    'UC_d_W1uBdIKo-zcAZVBpE7w',  # Yazılım Türkiye
+    'UCQKEJxT5iiHCWQqT68gOCOg',  # Kodlama Vakti
+    'UCPEDp-NSaNKZGFcF0Ob8ySA',  # Python Turkiye
+    'UCx8L3gTsZ6Qux28-xOtj_0g',  # Python Türkiye
+    'UCSnIf-v95OSGIv9H7d2R2lw',  # Kodluyoruz
+    'UC1VAnqF9VLHNXngLwpov4kA',  # PROTOTURK
+    'UCZ6YpiVVgRS2-ToBrOt2hcA',  # Google Türkiye
+    'UC9DkLqZvawpkU68oH9L3EZA',  # Teknoblog
+    'UCOvHevuChCbqevJpGKvPYdQ',  # NewTechTurkey
+    'UCPUhqqTRIHbDYeGF1V5vHBw',  # Teknoloji Dünyası
 ]
 
 # Data Collection Settings
-MAX_VIDEOS_PER_CHANNEL = 50
+MAX_VIDEOS_PER_CHANNEL = 200  # Her kanaldan 200 video topla (maksimum veri için)
 MAX_RESULTS_PER_REQUEST = 50
 
 # Model Configuration

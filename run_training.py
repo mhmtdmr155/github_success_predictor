@@ -18,10 +18,10 @@ if __name__ == '__main__':
     X, y = trainer.prepare_data(df)
     print(f"\nFeatures: {X.shape[1]}, Samples: {X.shape[0]}")
     
-    X_train, X_test, y_train, y_test = trainer.train_test_split_data(X, y)
-    print(f"Train set: {X_train.shape[0]}, Test set: {X_test.shape[0]}")
+    # Split into train, validation, and test sets
+    X_train, X_val, X_test, y_train, y_val, y_test = trainer.train_test_split_data(X, y)
     
-    results = trainer.train_all_models(X_train, X_test, y_train, y_test)
+    results = trainer.train_all_models(X_train, X_val, X_test, y_train, y_val, y_test)
     
     if trainer.best_model and hasattr(trainer.best_model, 'feature_importances_'):
         trainer.get_feature_importance(trainer.best_model, trainer.feature_names)
